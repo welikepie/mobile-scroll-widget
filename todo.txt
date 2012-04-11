@@ -1,7 +1,7 @@
 Tasks for coding
 ================
 
-* Make the buttons render to fixed positioning
+* **[DONE]** Make the buttons render to fixed positioning
 * Make the buttons scroll down instantly
 * Make the buttons scroll down with an animation
 * Render the overlay for already-viewed content
