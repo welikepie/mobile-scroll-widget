@@ -2,8 +2,9 @@ Tasks for coding
 ================
 
 * **[DONE]** Make the buttons render to fixed positioning
-* Make the buttons scroll down instantly
-* Make the buttons scroll down with an animation
+* **[DONE]** Make the buttons scroll down instantly
+* **[DONE]** Make the buttons scroll down with an animation
 * Render the overlay for already-viewed content
+* Code the ability to drag between corners of the screen
 * Code the options menu (including the disabling of the widget)
 * Code the means to invoke the menu
