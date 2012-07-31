@@ -5,6 +5,6 @@ Tasks for coding
 * **[DONE]** Make the buttons scroll down instantly
 * **[DONE]** Make the buttons scroll down with an animation
 * **[DONE]** Render the overlay for already-viewed content
-* Code the ability to drag between corners of the screen
+* **[DONE]** Code the ability to drag between corners of the screen
 * Code the options menu (including the disabling of the widget)
 * Code the means to invoke the menu
