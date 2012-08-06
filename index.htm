@@ -12,9 +12,11 @@
 			position: fixed;
 			bottom: 0;
 			padding: 20px;
+			z-index: 2;
 		}
-		.mobile-scroll.button.left { left: 0; }
-		.mobile-scroll.button.right { right: 0; }
+		.mobile-scroll.button.hidden { display: none; }
+		.mobile-scroll.button.left, .mobile-scroll.menu.left { left: 0; }
+		.mobile-scroll.button.right, .mobile-scroll.menu.right { right: 0; }
 		.mobile-scroll.button.animated {
 			transition: left 400ms ease-out 0;
 			-o-transition: left 400ms ease-out 0;
@@ -32,6 +34,20 @@
 			-ms-transition: height 500ms ease-in 0;
 			-moz-transition: height 500ms ease-in 0;
 			-webkit-transition: height 500ms ease-in 0;
+		}
+		.mobile-scroll.menu {
+			position: fixed;
+			bottom: 0;
+			padding: 20px;
+			z-index: 2;
+			display: none;
+			width: 200px;
+			height: 500px;
+			background: white;
+			z-index: 1;
+		}
+		.mobile-scroll.menu.open {
+			display: block;
 		}
 		</style>
 	</head>
@@ -52,5 +68,8 @@
 		<p> I am every character in between, save for that little weirdo with his guts strapped in, begging for water. That's not me. I'm done. I'm done. It's on. Bring it, as I say. I ain't hidin'. He's as radical as you'd think he'd might be. If ... I'm not just my dad, I'm ... you know ... petting up the river to kill another part of me, which is 'courage'. And we are and, I don't know, winning?... Anyone? .... (long silence) .... Rhymes with winning? .... Anyone? .... Yeah, that would be us. Yes! I don't read anything after it's come out, because I will not waste my precious time on such ridiculous nonsense. But I understand, according to you, that there was a lot of curiosity about the Vatican assassins. And people say, 'Oh, you know... you have to work through your resentments.' Yeah. No. I'm gonna hold on to them and they're gonna fuel my attack.</p>
 		<p>Because you have absolute and total resolve about your decisions. If you love with violence and you hate with violence, there's nothing that can be questioned. And you know, to sully and to contaminate or radically disrespect this union with a shameful contract is something I'll leave to the amateurs and the bible grippers. Because you have absolute and total resolve about your decisions. If you love with violence and you hate with violence, there's nothing that can be questioned. So ... you know ... within that is tremendous focus, and tremendous clarity, and tremendous peace. No, you won't get high .... It's all good. It's all good, guys. Quit panicking. Quit panicking. No panic, no judgment. They will lose the rest of their lives as they think about me and my life for the rest of their lives. So ... it's ... there's no ... again, bring me a challenge, somebody. Bring me a frickin' challenge. Because, you know ... it just ain't there. WINNING! 100%. You know, here's your first pee test. Next one goes in your mouth.</p>
 	</body>
-	<script type="text/javascript">window.mobileScroll();</script>
+	<script type="text/javascript">window.mobileScroll({
+		'menu': true,
+		'shortcuts': 'scripts/shortcuts.json'
+	});</script>
 </html>

@@ -47,13 +47,14 @@
                 scrollPage,
                 adjustOverlay,
                 
+                preferences,
                 element,
                 position;
             
             settings = {
-                'ui': '<button type="button" class="mobile-scroll button">Scroll Down</button>',
-                'overlay': '<div class="mobile-scroll overlay"></div>',
-                'menu': null,
+                'ui': '<button type="button">Scroll Down</button>',
+                'overlay': '<div></div>',
+                'menu': false,
                 'shortcuts': null,
                 
                 'duration': 500,
@@ -72,8 +73,6 @@
                 
                 var starting_y, destination_y, expected_y,
                     start_timestamp, anim_func, ease_func;
-                
-                ev.preventDefault();
                 
                 // IMPORTANT! We don't want the button to activate while it's being dragged.
                 if (ui_drag.drag_state !== 0) { return; }
@@ -173,26 +172,153 @@
             
             mobileScroll = function (args) {
             
+                var x, xhr;
+            
                 // Merge settings
                 for (x in args)
                     if (args.hasOwnProperty(x))
                         settings[x] = args[x];
-                
+                settings.side = (preferences.get('position') || settings.side);
+                            
                 // Create elements
                 ui_overlay = element(settings.overlay);
+                ui_overlay.className = 'mobile-scroll overlay';
                 window.document.body.appendChild(ui_overlay);
                 ui_button = element(settings.ui);
-                ui_button.className += ' ' + (settings.initial || 'left');
+                ui_button.className = 'mobile-scroll button ' + settings.side;
                 window.document.body.appendChild(ui_button);
                 
-                // Add the event handler on the main UI element
-                ui_button.addEventListener('click', scrollPage, false);
+                // Generate menu
+                if (settings.menu) {
                 
-                // Add the event handler on window scrolling;
-                // Any manual scrolling should immediately disable
-                // the overlay (case for automatic scrolling, which
-                // also throws this event, should be included)
-                window.addEventListener('scroll', function () { if (!in_scroll) { adjustOverlay(-1); } }, false);
+                    ui_menu = element('<div class="mobile-scroll menu ' + settings.side + '"></div>');
+                    window.document.body.appendChild(ui_menu);
+                    
+                    ui_menu.displayPrefs = function () {
+                    
+                        var i, el = this.getElementsByTagName('div');
+                        for (i = el.length - 1; i >= 0; i -= 1) {
+                            if (el[i].className === 'settings') {
+                                el[i].parentNode.removeChild(el[i]);
+                            }
+                        }
+                        
+                        el = element([
+                            '<div class="settings">',
+                                '<label>Position: ',
+                                    '<select size="1" class="position">',
+                                        '<option value="left" ' + (settings.side === 'left' ? 'selected' : '') + '>Left</option>',
+                                        '<option value="right" ' + (settings.side === 'right' ? 'selected' : '') + '>Right</option>',
+                                        '<option value="hidden">Hidden</option>',
+                                    '</select>',
+                                '</label>',
+                            '</div>'
+                        ].join(''));
+                    
+                        if (this.childNodes.length) {
+                            this.insertBefore(el, this.childNodes[0]);
+                        } else {
+                            this.appendChild(el);
+                        }
+                    
+                    };
+                    ui_menu.displayPrefs();
+                    
+                    ui_menu.applyPrefs = function () {
+                    
+                        var settings, temp, i,
+                            position;
+                        
+                        temp = this.getElementsByTagName('div');
+                        for (i = temp.length - 1; i >= 0; i -= 1) {
+                            if (temp[i].className === 'settings') {
+                                settings = temp[i];
+                                break;
+                            }
+                        }
+                        
+                        if (settings) {
+                        
+                            // Save the position
+                            temp = settings.getElementsByTagName('select');
+                            for (i = 0; i < temp.length; i += 1) {
+                                if (temp[i].className === 'position') {
+                                    position = temp[i];
+                                    break;
+                                }
+                            }
+                            
+                            if (position) {
+                            
+                                if ((position.value === 'left') || (position.value === 'right')) {
+                                    preferences.set('position', position.value);
+                                    settings.side = position.value;
+                                    ui_button.className = (ui_button.className
+                                        .replace(/(?:^|\s)left(?:$|\s)/, ' ')
+                                        .replace(/(?:^|\s)right(?:$|\s)/, ' ')
+                                        + ' ' + position.value)
+                                            .split(/\s+/).join(' ');
+                                    ui_menu.className = (ui_menu.className
+                                        .replace(/(?:^|\s)left(?:$|\s)/, ' ')
+                                        .replace(/(?:^|\s)right(?:$|\s)/, ' ')
+                                        + ' ' + position.value)
+                                            .split(/\s+/).join(' ');
+                                
+                                // Hide the button
+                                } else if (position.value === 'hidden') {
+                                    ui_button.className = (ui_button.className + ' hidden')
+                                        .split(/\s+/).join(' ');
+                                }
+                            
+                            }
+                        
+                        }
+                    
+                    };
+                    
+                    if (typeof settings.shortcuts === 'string') {
+                    
+                        xhr = (window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP'));
+                        xhr.onreadystatechange = function () {
+                        
+                            var shortcuts, link_func = function (item) {
+                                var key, val, el, temp;
+                                
+                                el = window.document.createElement('ul');
+                                for (key in item) {
+                                    if (item.hasOwnProperty(key)) {
+                                    
+                                        if (typeof item[key] === 'string') {
+                                            temp = element('<li><a href="' + item[key] + '">' + key + '</a></li>');
+                                        } else {
+                                            temp = window.document.createElement('li');
+                                            temp.appendChild(link_func(item[key]));
+                                        }
+                                        el.appendChild(temp);
+                                    
+                                    }
+                                }
+                                return el;
+                            };
+                        
+                            if (this.readyState === 4) {
+                                if (this.status === 200) {
+                                
+                                    shortcuts = JSON.parse(this.responseText);
+                                    shortcuts = link_func(shortcuts);
+                                    shortcuts.className = 'menu';
+                                    ui_menu.appendChild(shortcuts);
+                                
+                                }
+                            }
+                        
+                        };
+                        xhr.open('GET', settings.shortcuts, true);
+                        xhr.send();
+                    
+                    }
+                
+                }
                 
                 /* Set up the touch event handler (from Hammer.js) to handle
                  * dragging of the main UI element. Due to how touch events are processed,
@@ -229,7 +355,8 @@
                         this.drag_state = 1;
                         ui_button.className = ui_button.className
                             .replace(/(?:^|\s)left(?:$|\s)/, ' ')
-                            .replace(/(?:^|\s)right(?:$|\s)/, ' ');
+                            .replace(/(?:^|\s)right(?:$|\s)/, ' ')
+                            .split(/\s+/).join(' ');
                     
                     }
                 
@@ -284,7 +411,8 @@
                         
                             ui_button.style.left = null;
                             ui_button.className = ui_button.className
-                                .replace(/(?:^|\s)animated(?:$|\s)/, ' ');
+                                .replace(/(?:^|\s)animated(?:$|\s)/, ' ')
+                                .split(/\s+/).join(' ');
                             ui_button.className += ' ' + snap_position;
                             
                             ui_button.removeEventListener("transitionend", transition_func, false);
@@ -313,10 +441,57 @@
                             snap_position = "right";
                             ui_button.style.left = (window.innerWidth - ui_button.offsetWidth) + "px";
                         }
+                        
+                        preferences.set('position', snap_position);
+                        settings.side = snap_position;
+                        if (settings.menu)
+                            ui_menu.displayPrefs();
+                            ui_menu.className = (ui_menu.className
+                                .replace(/(?:^|\s)left(?:$|\s)/, ' ')
+                                .replace(/(?:^|\s)right(?:$|\s)/, ' ')
+                                + ' ' + snap_position)
+                                    .split(/\s+/).join(' ');
                     
                     }
                 
                 };
+                
+                // Add the event handler on the main UI element
+                ui_drag.ontap = function (ev) {
+                    var target = ev.originalEvent.target || ev.originalEvent.srcElement;
+                    if (target === ui_button)
+                        scrollPage(ev);
+                };
+                
+                // Add the event handler on window scrolling;
+                // Any manual scrolling should immediately disable
+                // the overlay (case for automatic scrolling, which
+                // also throws this event, should be included)
+                window.addEventListener('scroll', function () { if (!in_scroll) { adjustOverlay(-1); } }, false);
+                
+                if (settings.menu) {
+                
+                    ui_drag.onhold = function (ev) {
+                    
+                        // Fix for IE browsers
+                        var target = ev.originalEvent.target || ev.originalEvent.srcElement;
+                        if (target === ui_button) {
+                        
+                            if (ui_menu.className.match(/(?:^|\s)open(?:$|\s)/)) {
+                                ui_menu.className = ui_menu.className
+                                    .replace(/(?:^|\s)open(?:$|\s)/, ' ')
+                                    .split(/\s+/).join(' ');
+                                ui_menu.applyPrefs();
+                            } else {
+                                ui_menu.className = (ui_menu.className + ' open')
+                                    .split(/\s+/).join(' ');
+                            }
+                        
+                        }
+                    
+                    }
+                
+                }
             
             };
             
@@ -350,6 +525,26 @@
                         return document.body.scrollTop;
 
                     return 0;
+                }
+            };
+            
+            preferences = {
+                'get': function (key) {
+                    var i, j, props, prefs = {};
+                    props = window.document.cookie.split(';');
+                    for (i = 0; i < props.length; i += 1) {
+                        j = props[i].split('=');
+                        prefs[j[0]] = j[1];
+                    }
+                    if (window.escape(key) in prefs)
+                        return prefs[key];
+                    else
+                        return null;
+                },
+                'set': function (key, val) {
+                    document.cookie =
+                        window.escape(key) + '=' +
+                        window.escape(val);
                 }
             };
             
