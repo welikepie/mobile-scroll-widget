@@ -8,3 +8,4 @@ Tasks for coding
 * **[DONE]** Code the ability to drag between corners of the screen
 * **[DONE]** Code the options menu (including the disabling of the widget)
 * **[DONE]** Code the means to invoke the menu
+* Write nicer ReadMe
